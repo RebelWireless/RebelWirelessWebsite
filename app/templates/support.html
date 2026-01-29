@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-4xl font-bold mb-10 text-center">Support</h2>
+
+<div class="max-w-3xl mx-auto space-y-8">
+  <div class="bg-gray-800 p-6 rounded shadow">
+    <h3 class="text-2xl font-semibold mb-2">FAQs</h3>
+    <p class="text-gray-400">Find answers to common questions about our mobile and internet plans, billing, and more.</p>
+  </div>
+
+  <div class="bg-gray-800 p-6 rounded shadow">
+    <h3 class="text-2xl font-semibold mb-2">Contact Us</h3>
+    <p class="text-gray-400 mb-4">Need help? Reach out via email or phone:</p>
+    <ul class="text-gray-300 space-y-1">
+      <li>Email: <a href="mailto:support@rebelwireless.ca" class="text-rebel hover:underline">support@rebelwireless.ca</a></li>
+      <li>Phone: <a href="tel:+18881234567" class="text-rebel hover:underline">1-888-123-4567</a></li>
+    </ul>
+  </div>
+
+  <div class="bg-gray-800 p-6 rounded shadow">
+    <h3 class="text-2xl font-semibold mb-2">Live Chat</h3>
+    <p class="text-gray-400">Chat with one of our agents directly from your dashboard.</p>
+    <button class="mt-4 bg-rebel px-6 py-3 rounded hover:bg-red-700 w-full md:w-auto">Open Chat</button>
+  </div>
+</div>
+{% endblock %}

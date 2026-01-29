@@ -1,0 +1,124 @@
+<section class="bg-black dark:bg-zinc-900">
+  <div class="py-16 px-4 mx-auto max-w-screen-xl lg:py-24 lg:px-6">
+
+    <!-- Section Header -->
+    <div class="mx-auto max-w-screen-md text-center mb-12 lg:mb-16">
+      <h2 class="mb-4 text-4xl font-extrabold tracking-tight text-white">Plans for Every Need</h2>
+      <p class="mb-5 font-normal text-gray-300 sm:text-xl">
+        Fast, reliable wireless internet with simple pricing and no hidden fees.
+      </p>
+    </div>
+
+    <!-- Device Options -->
+    <div class="flex justify-center gap-4 mb-12">
+      <button id="byodBtn" class="text-white bg-red-600 font-semibold rounded-lg px-6 py-3 transition-colors focus:ring-4 focus:ring-red-900">
+        BYOD
+      </button>
+      <button id="rentBtn" class="text-white font-semibold rounded-lg px-6 py-3 transition-colors focus:ring-4 focus:ring-red-900">
+        Rent
+      </button>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="lg:grid lg:grid-cols-3 lg:gap-8 gap-8 mb-8">
+      {% for plan in plans %}
+      <div class="flex flex-col p-6 text-center text-white bg-zinc-900 border border-zinc-800 rounded-lg shadow hover:border-red-600 hover:shadow-lg xl:p-8">
+        <h3 class="mb-4 text-2xl font-semibold">{{ plan.title }}</h3>
+        <p class="font-normal text-gray-400 sm:text-lg mb-6">{{ plan.description }}</p>
+        <div class="flex justify-center items-baseline my-8 relative">
+          <span
+  class="mr-2 text-5xl font-extrabold price"
+  data-base="{{ plan.base_price }}"
+  data-rental="{{ plan.rental_price }}"
+>
+            {{ plan.base_price if plan.base_price > 0 else 'Free' }}
+          </span>
+          <span class="text-gray-500">/month</span>
+          <span class="absolute top-0 right-0 text-sm text-red-500 font-medium rent-badge hidden">+ ${{ plan.rental_price }} rental</span>
+        </div>
+        <ul role="list" class="mb-8 space-y-4 text-left flex-1">
+          {% for stat in plan.stats %}
+          <li class="flex items-center space-x-3">
+            <svg class="flex-shrink-0 w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span>{{ stat }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+            <a href="/signup?plan={{ plan.title | urlencode }}&rental=0"
+               class="text-white bg-red-600 hover:bg-red-500 focus:ring-4 focus:ring-red-900 font-semibold rounded-lg px-6 py-3">
+               {{ plan.cta }}
+            </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Disclaimers Section -->
+    <div class="max-w-screen-md mx-auto mt-8 text-center space-y-2">
+      {% for disclaimer in disclaimers %}
+        <p class="text-gray-400 text-sm">{{ disclaimer }}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- JS for device selection -->
+  <script>
+    const rentBtn = document.getElementById('rentBtn');
+    const byodBtn = document.getElementById('byodBtn');
+    const prices = document.querySelectorAll('.price');
+    const rentBadges = document.querySelectorAll('.rent-badge');
+    const ctas = document.querySelectorAll('a[href^="/signup?plan"]');
+
+    let rentActive = false; // BYOD default
+
+    function init() {
+      // BYOD default styling
+      byodBtn.classList.add('bg-red-600', 'text-white');
+      rentBtn.classList.remove('bg-red-600', 'text-white');
+      updatePrices();
+    }
+
+    rentBtn.addEventListener('click', () => {
+      rentActive = true;
+      rentBtn.classList.add('bg-red-600', 'text-white');
+      byodBtn.classList.remove('bg-red-600', 'text-white');
+      updatePrices();
+    });
+
+    byodBtn.addEventListener('click', () => {
+      rentActive = false;
+      byodBtn.classList.add('bg-red-600', 'text-white');
+      rentBtn.classList.remove('bg-red-600', 'text-white');
+      updatePrices();
+    });
+
+  function updatePrices() {
+    prices.forEach((span) => {
+      const base = parseInt(span.dataset.base);
+      const rental = parseInt(span.dataset.rental);
+
+      if (base === 0) {
+        span.textContent = rentActive ? `$${rental}` : 'Free';
+      } else {
+        span.textContent = `$${base + (rentActive ? rental : 0)}`;
+      }
+    });
+
+    rentBadges.forEach(badge =>
+      badge.classList.toggle('hidden', !rentActive)
+    );
+
+    // Update CTA links with correct rental per plan
+    ctas.forEach((cta, index) => {
+      const priceSpan = prices[index];
+      const rental = parseInt(priceSpan.dataset.rental);
+
+      const url = new URL(cta.href, window.location.origin);
+      url.searchParams.set('rental', rentActive ? rental : 0);
+      cta.href = url.toString();
+    });
+  }
+    init();
+  </script>
+</section>

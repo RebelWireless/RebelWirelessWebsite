@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ — Rebel Wireless{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12 font-primary text-white">
+
+  <!-- Page Header -->
+  <div class="mb-12 text-center">
+    <h1 class="text-4xl font-bold tracking-tight text-matteBlack dark:text-white">
+      Frequently Asked Questions
+    </h1>
+    <p class="mt-3 text-steelGray text-lg">
+      Learn how to connect to Rebel Wireless using BYOD or Ubiquiti radios.
+    </p>
+  </div>
+
+  <!-- FAQ Container -->
+  <div class="space-y-8">
+
+    <!-- General Section -->
+    <section>
+      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">
+        General
+      </h2>
+
+      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">
+        <details class="group p-5 bg-black">
+          <summary class="flex cursor-pointer justify-between items-center font-semibold text-white">
+            What is a WISP?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            A Wireless Internet Service Provider (WISP) delivers internet access over
+            radio links instead of fiber or cable. Small antennas connect wirelessly to our network.
+          </p>
+        </details>
+
+        <details class="group p-5 bg-black">
+          <summary class="flex cursor-pointer justify-between items-center font-semibold text-white">
+            Why choose a WISP?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            WISPs offer flexibility in areas without wired infrastructure, faster setup, and community-focused connectivity.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- Equipment & Installation -->
+    <section>
+      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">
+        Equipment & Installation
+      </h2>
+
+      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">
+        <details class="group p-5 bg-black">
+          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
+            Can I use my own equipment (BYOD)?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            Yes. BYOD devices are supported if compatible with our frequencies and network setup.
+          </p>
+        </details>
+
+        <details class="group p-5 bg-black">
+          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
+            What equipment do you provide?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            We provide Ubiquiti radios such as LiteBeam, NanoBeam, or airMAX devices depending on your location.
+          </p>
+        </details>
+
+        <details class="group p-5 bg-black">
+          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
+            Can I install it myself?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            Many customers self-install. Installation involves mounting the radio, aiming it, and running Ethernet indoors.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- Community Networks -->
+    <section>
+      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">
+        Community Networks (NYC Mesh)
+      </h2>
+
+      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">
+        <details class="group p-5 bg-black">
+          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
+            What is NYC Mesh?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            NYC Mesh is a community-run wireless network connecting neighborhoods using rooftop radios. It's a good example of decentralized networking.
+          </p>
+        </details>
+
+        <details class="group p-5 bg-black">
+          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
+            How is this different from a WISP?
+            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
+          </summary>
+          <p class="mt-4 text-steelGray">
+            A WISP provides dedicated service and formal support, while mesh networks rely on shared community resources.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <div class="mt-12 rounded-lg bg-matteBlack border border-electricRed p-6 text-center">
+      <h3 class="text-xl font-bold text-white">Still have questions?</h3>
+      <p class="mt-2 text-steelGray">Contact us to determine the best setup for your location.</p>
+      <a href="/contact"
+         class="inline-block mt-4 px-6 py-2 rounded font-semibold bg-electricRed hover:bg-red-700 transition">
+        Contact Support
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+wisp_devices = [
+    {
+        "id": "litebeam-5ac",
+        "name": "Ubiquiti LiteBeam 5AC",
+        "purchase_price": 89,
+        "rental_price": 10,
+        "band": "5ghz",
+        "mode": "ptp",
+        "image": "https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2F3525fe19-1b9a-42bb-8db8-62057aedd6db%2Ff0ef2895-c23e-4872-9b69-d43d7b14c32b.png&q=75&w=3840",
+        "link": "https://ca.store.ui.com/ca/en/category/wireless-airmax-5ghz/products/loco5ac?variant=loco5ac-us",
+    },
+    {
+        "id": "rocket-prism-5ac",
+        "name": "Ubiquiti Rocket Prism 5AC",
+        "purchase_price": 199,
+        "rental_price": 20,
+        "band": "5ghz",
+        "mode": "ptmp",
+        "image": "/static/images/devices/ubiquiti-rocket-prism.png",
+        "link": "https://store.ui.com",
+    },
+    {
+        "id": "nanobeam-ac",
+        "name": "Ubiquiti NanoBeam AC",
+        "purchase_price": 99,
+        "rental_price": 12,
+        "band": "5ghz",
+        "mode": "ptp",
+        "image": "/static/images/devices/ubiquiti-nanobeam-ac.png",
+        "link": "https://store.ui.com",
+    },
+]

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Rebel Wireless - Fast, Reliable Internet{% endblock %}
+
+{% block content %}
+{% include "sections/hero.html" %}
+{% include "sections/pricing.html" %}
+{% include "sections/features.html" %}
+{% include "sections/testimonials.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updatePrice(toggle) {
+    const i = toggle.dataset.index;
+    const price = document.getElementById(`price-${i}`);
+    const btn = document.getElementById(`signup-btn-${i}`);
+
+    if (!price || !btn) return;
+
+    const base = Number(price.dataset.basePrice);
+
+    if (toggle.checked) {
+        price.textContent = base === 0 ? '$5' : `$${base + 5}`;
+        btn.href = `/signup?plan=${encodeURIComponent(btn.dataset.plan)}&rental=1`;
+    } else {
+        price.textContent = base === 0 ? 'Free' : `$${base}`;
+        btn.href = `/signup?plan=${encodeURIComponent(btn.dataset.plan)}&rental=0`;
+    }
+}
+
+// Attach change listeners
+document.querySelectorAll('.toggle-rental').forEach(toggle => {
+    toggle.addEventListener('change', () => updatePrice(toggle));
+});
+
+// Particles.js background for larger screens
+if (window.innerWidth > 768 && document.getElementById('particles-js')) {
+    particlesJS("particles-js", {
+        particles: {
+            number: { value: 60, density: { enable: true, value_area: 700 } },
+            color: { value: "#dc2626" },
+            shape: { type: "circle" },
+            opacity: { value: 0.7 },
+            size: { value: 5, random: true },
+            line_linked: {
+                enable: true,
+                distance: 200,
+                color: "#dc2626",
+                opacity: 1,
+                width: 1
+            },
+            move: { enable: true, speed: 1.5 }
+        },
+        interactivity: {
+            events: {
+                onhover: { enable: true, mode: "repulse" },
+                onclick: { enable: false }
+            }
+        },
+        retina_detect: true
+    });
+}
+</script>
+{% endblock %}

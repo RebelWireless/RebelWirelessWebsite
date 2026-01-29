@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="bg-black py-16 px-4 lg:py-24">
+  <div class="max-w-screen-xl mx-auto">
+
+    <!-- Section Header -->
+    <div class="max-w-screen-md mx-auto text-center mb-12">
+      <h1 class="text-4xl font-extrabold text-white mb-4">
+        Check Coverage
+      </h1>
+      <p class="text-gray-400 text-lg">
+        See where Rebel Wireless service is currently available.
+      </p>
+    </div>
+
+    <!-- Search Box -->
+    <div class="max-w-md mx-auto mb-8">
+      <input
+        id="coverageSearch"
+        type="text"
+        placeholder="Enter city or state"
+        class="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-red-900"
+      />
+    </div>
+
+    <!-- Map Card -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-hidden">
+      <div
+        id="coverageMap"
+        class="w-full h-[500px]"
+      ></div>
+    </div>
+
+  </div>
+
+<!-- CTA if location not found -->
+<div class="max-w-screen-md mx-auto mt-8 text-center">
+  <p class="text-gray-400 text-lg mb-4">
+    Can't find your address? We're constantly adding new locations.
+  </p>
+  <p class="text-gray-400 text-lg mb-4">
+    Contact us - we might be able to service your area!
+  </p>
+  <a href="/contact"
+     class="inline-block bg-red-600 hover:bg-red-500 text-white font-semibold px-6 py-3 rounded-lg transition focus:ring-4 focus:ring-red-900">
+    Contact Us
+  </a>
+</div>
+
+</section>
+
+<!-- Leaflet -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  // Locations injected from FastAPI
+  const locations = {{ locations | tojson }};
+
+  // Initialize map (US-centered)
+  const map = L.map("coverageMap").setView([37.0902, -95.7129], 4);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  const markers = [];
+
+  locations.forEach(loc => {
+    const marker = L.marker([loc.lat, loc.lng])
+      .addTo(map)
+      .bindPopup(
+        `<strong>${loc.name}</strong><br>
+         <span style="color:#22c55e;">Service Available</span>`
+      );
+
+    markers.push({ ...loc, marker });
+  });
+
+  // Search behavior
+  document.getElementById("coverageSearch").addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    if (!query) return;
+
+    const match = markers.find(m =>
+      m.name.toLowerCase().includes(query)
+    );
+
+    if (match) {
+      map.setView([match.lat, match.lng], 10);
+      match.marker.openPopup();
+    }
+  });
+</script>
+{% endblock %}

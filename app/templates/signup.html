@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Rebel Wireless - Sign Up{% endblock %}
+
+{% block content %}
+<section class="bg-black py-20">
+  <div class="max-w-screen-md mx-auto px-4">
+    <h2 class="text-3xl font-bold text-white mb-8 text-center">Sign Up for Rebel Wireless</h2>
+
+    {% if plan %}
+    <div class="mb-6 p-6 bg-zinc-900 rounded-lg border border-zinc-800">
+      <h3 class="text-xl font-semibold text-white mb-2">{{ plan.title }} Plan</h3>
+      <p class="text-gray-400 mb-2">{{ plan.description }}</p>
+      <p class="text-gray-400 font-semibold">
+        Price: ${{ plan.base_price if plan.base_price > 0 else 'Free' }}/month
+      </p>
+    </div>
+    {% endif %}
+
+    <form action="/submit-signup" method="POST" class="space-y-6">
+      <!-- Personal Info -->
+      <div>
+        <label for="full_name" class="block text-white font-semibold mb-2">Full Name</label>
+        <input type="text" name="full_name" id="full_name" required
+               class="w-full p-3 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+      </div>
+
+      <div>
+        <label for="email" class="block text-white font-semibold mb-2">Email Address</label>
+        <input type="email" name="email" id="email" required
+               class="w-full p-3 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+      </div>
+
+      <div>
+        <label for="phone" class="block text-white font-semibold mb-2">Phone Number</label>
+        <input type="tel" name="phone" id="phone" required
+               class="w-full p-3 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+      </div>
+
+      <!-- Address -->
+      <div>
+        <label for="address" class="block text-white font-semibold mb-2">Address</label>
+        <input type="text" name="address" id="address" required
+               class="w-full p-3 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+      </div>
+
+      <div>
+        <label for="city" class="block text-white font-semibold mb-2">City</label>
+        <input type="text" name="city" id="city" required
+               class="w-full p-3 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+      </div>
+
+      <div>
+        <label for="postal_code" class="block text-white font-semibold mb-2">Postal Code</label>
+        <input type="text" name="postal_code" id="postal_code" required
+               class="w-full p-3 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+      </div>
+
+      <!-- Plan info hidden -->
+      <input type="hidden" name="plan" value="{{ plan.title if plan else '' }}">
+      <input type="hidden" name="rental" value="{{ rental }}">
+
+      <button type="submit"
+              class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg transition">
+        Complete Sign Up
+      </button>
+    </form>
+  </div>
+</section>
+
+
+
+{% endblock %}

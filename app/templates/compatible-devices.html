@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-screen-xl mx-auto py-16 px-4">
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+
+        <!-- Sort Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm text-gray-400 font-medium">Sort:</span>
+
+            <button onclick="sortDevices('name')" data-key="name"
+                class="px-4 py-2 rounded-lg border border-zinc-700 text-gray-300 hover:border-red-600 hover:text-white transition text-sm">
+                Device <span class="sort-indicator ml-1"></span>
+            </button>
+
+            <button onclick="sortDevices('purchase')" data-key="purchase"
+                class="px-4 py-2 rounded-lg border border-zinc-700 text-gray-300 hover:border-red-600 hover:text-white transition text-sm">
+                Purchase <span class="sort-indicator ml-1"></span>
+            </button>
+
+            <button onclick="sortDevices('rental')" data-key="rental"
+                class="px-4 py-2 rounded-lg border border-zinc-700 text-gray-300 hover:border-red-600 hover:text-white transition text-sm">
+                Rental <span class="sort-indicator ml-1"></span>
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex items-center gap-2">
+            <select id="bandFilter" onchange="applyFilters()"
+                class="bg-zinc-900 border border-zinc-700 text-gray-300 rounded-lg px-3 py-2 text-sm">
+                <option value="">All Bands</option>
+                <option value="5ghz">5 GHz</option>
+            </select>
+
+            <select id="modeFilter" onchange="applyFilters()"
+                class="bg-zinc-900 border border-zinc-700 text-gray-300 rounded-lg px-3 py-2 text-sm">
+                <option value="">All Modes</option>
+                <option value="ptp">PtP</option>
+                <option value="ptmp">PtMP</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="hidden md:block bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-300">
+            <thead class="bg-zinc-800 border-b border-zinc-700">
+                <tr>
+                    <th class="px-6 py-4"></th>
+                    <th class="px-6 py-4 font-bold text-white">Device</th>
+                    <th class="px-6 py-4 font-bold text-white">Purchase</th>
+                    <th class="px-6 py-4 font-bold text-white">Rental</th>
+                    <th class="px-6 py-4 font-bold text-white"></th>
+                </tr>
+            </thead>
+
+            <tbody id="deviceContainer">
+                {% for device in devices %}
+                <tr class="device-row border-b border-zinc-800 hover:bg-zinc-800/60 transition"
+                    data-name="{{ device.name }}"
+                    data-purchase="{{ device.purchase_price }}"
+                    data-rental="{{ device.rental_price }}"
+                    data-band="{{ device.band }}"
+                    data-mode="{{ device.mode }}">
+
+                    <td class="p-4">
+                        <img src="{{ device.image }}"
+                             alt="{{ device.name }}"
+                             class="w-20">
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-white">
+                        {{ device.name }}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        ${{ device.purchase_price }}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        ${{ device.rental_price }}/mo
+                    </td>
+
+                    <td class="px-6 py-4">
+                        <a href="{{ device.link }}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="inline-flex items-center justify-center bg-red-600 hover:bg-red-500 text-white font-semibold px-5 py-2 rounded-lg transition focus:ring-4 focus:ring-red-900">
+                            View Device
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="md:hidden space-y-4 mt-6" id="deviceCards">
+        {% for device in devices %}
+        <div class="device-row bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+             data-name="{{ device.name }}"
+             data-purchase="{{ device.purchase_price }}"
+             data-rental="{{ device.rental_price }}"
+             data-band="{{ device.band }}"
+             data-mode="{{ device.mode }}">
+
+            <img src="{{ device.image }}"
+                 alt="{{ device.name }}"
+                 class="w-full h-32 object-contain mb-4">
+
+            <h3 class="font-semibold text-white">
+                {{ device.name }}
+            </h3>
+
+            <p class="text-gray-400 text-sm mt-1">
+                Purchase: ${{ device.purchase_price }}
+            </p>
+
+            <p class="text-gray-400 text-sm">
+                Rental: ${{ device.rental_price }}/mo
+            </p>
+
+            <a href="{{ device.link }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="mt-4 inline-flex w-full justify-center bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg transition focus:ring-4 focus:ring-red-900">
+                View Device
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+let sortDirection = {};
+const params = new URLSearchParams(window.location.search);
+
+function updateIndicators(activeKey) {
+    document.querySelectorAll(".sort-indicator").forEach(el => {
+        el.textContent = "";
+        el.classList.remove("text-red-500");
+    });
+
+    const indicator = document.querySelector(
+        `[data-key="${activeKey}"] .sort-indicator`
+    );
+    if (indicator) {
+        indicator.textContent = sortDirection[activeKey] === 1 ? "↑" : "↓";
+        indicator.classList.add("text-red-500");
+    }
+}
+
+function sortDevices(key, toggle = true) {
+    if (toggle) {
+        // Flip direction only on user click
+        sortDirection[key] = (sortDirection[key] || 1) * -1;
+    } else {
+        // Ensure default direction is ascending if not set
+        if (!sortDirection[key]) sortDirection[key] = 1;
+    }
+
+    // Desktop table rows
+    const tableBody = document.getElementById("deviceContainer");
+    const tableRows = Array.from(tableBody.querySelectorAll(".device-row"));
+
+    // Mobile cards
+    const cardsContainer = document.getElementById("deviceCards");
+    const cardRows = Array.from(cardsContainer.querySelectorAll(".device-row"));
+
+    // Sorting function
+    const compare = (a, b) => {
+        const A = a.dataset[key];
+        const B = b.dataset[key];
+
+        if (key === "name") {
+            return A.localeCompare(B) * sortDirection[key];
+        } else {
+            return (Number(A) - Number(B)) * sortDirection[key];
+        }
+    };
+
+    // Sort both desktop and mobile
+    tableRows.sort(compare);
+    cardRows.sort(compare);
+
+    // Re-append in sorted order
+    tableRows.forEach(row => tableBody.appendChild(row));
+    cardRows.forEach(row => cardsContainer.appendChild(row));
+
+    updateIndicators(key);
+    params.set("sort", key);
+    params.set("dir", sortDirection[key]);
+    history.replaceState({}, "", `?${params}`);
+}
+
+function applyFilters() {
+    const band = document.getElementById("bandFilter").value;
+    const mode = document.getElementById("modeFilter").value;
+
+    document.querySelectorAll(".device-row").forEach(row => {
+        const matches =
+            (!band || row.dataset.band === band) &&
+            (!mode || row.dataset.mode === mode);
+        row.style.display = matches ? "" : "none";
+    });
+}
+
+/* ✅ DEFAULT SORT: Purchase price ASCENDING (LOW → HIGH) */
+window.addEventListener("load", () => {
+    const key = params.get("sort") || "purchase";
+    const dir = params.get("dir");
+
+    sortDirection[key] = dir ? Number(dir) : 1;
+
+    // Initial sort WITHOUT toggling
+    sortDevices(key, false);
+});
+</script>
+
+
+
+{% endblock %}
