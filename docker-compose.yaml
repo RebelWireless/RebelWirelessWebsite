@@ -1,20 +1,41 @@
 version: '3.9'
 
 services:
+  postgres:
+    image: postgres:15
+    container_name: rebel_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: rebel
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: rebelwireless
+    ports:
+      - "5432:5432"
+    volumes:
+      - rebel_postgres_data:/var/lib/postgresql/data
+
   rebelwireless:
     build: .
     container_name: rebelwireless
+    depends_on:
+      - postgres
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://rebel:secret@postgres:5432/rebelwireless
+      - DISCORD_SIGNUP_WEBHOOK_URL=${DISCORD_SIGNUP_WEBHOOK_URL}
+      - DISCORD_CONTACT_WEBHOOK_URL=${DISCORD_CONTACT_WEBHOOK_URL}
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
     restart: always
-    environment:
-      - PYTHONUNBUFFERED=1
-      # Discord webhooks (set in Coolify or local .env)
-      - DISCORD_SIGNUP_WEBHOOK_URL=${DISCORD_SIGNUP_WEBHOOK_URL}
-      - DISCORD_CONTACT_WEBHOOK_URL=${DISCORD_CONTACT_WEBHOOK_URL}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  rebel_postgres_data:

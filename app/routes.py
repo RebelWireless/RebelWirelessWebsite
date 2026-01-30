@@ -1,41 +1,50 @@
-from typing import Optional, Set
-from urllib.parse import unquote
 import logging
+import os
+from typing import Optional, Set, List
+from urllib.parse import unquote
+from pathlib import Path
 
-from fastapi import (
-    APIRouter,
-    Request,
-    HTTPException,
-)
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Request, HTTPException, Depends, Header
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, EmailStr, constr, ValidationError
+from sqlalchemy.orm import Session
 
 from app.data.plans import plans, disclaimers
 from app.data.device_list import wisp_devices
-from app.data.coverage import served_locations
 from app.data.testimonials import testimonials
-from app.utils.discord import (
-    send_signup_to_discord,
-    send_contact_to_discord,
-)
+from app.utils.discord import send_signup_to_discord, send_contact_to_discord
+from app.database import SessionLocal, get_db
+from app.crud.location import get_all_locations, add_location
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+
+# Use absolute path for templates to fix pytest/Docker issues
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+# -------------------------
+# API Key for admin routes
+# -------------------------
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
+
+
+def verify_admin_api_key(x_api_key: str = Header(...)):
+    if x_api_key != ADMIN_API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
 
 # -------------------------
 # Helpers
 # -------------------------
-
 def render(request: Request, template: str, **context):
-    """DRY helper for template rendering (Starlette-compatible)."""
+    """DRY helper for template rendering."""
     return templates.TemplateResponse(
-        request,
-        template,
-        context,
+        request,                # <-- request MUST be first positional argument
+        name=template,          # <-- use `name` instead of `template_name`
+        context={"request": request, "name": "Rebel Wireless", **context},
     )
 
 
@@ -45,7 +54,6 @@ VALID_PLAN_TITLES: Set[str] = {p["title"] for p in plans}
 # -------------------------
 # Pydantic Form Models
 # -------------------------
-
 class SignupForm(BaseModel):
     full_name: constr(min_length=2)
     email: EmailStr
@@ -65,10 +73,20 @@ class ContactForm(BaseModel):
     company: Optional[str] = None  # honeypot
 
 
+class LocationCreate(BaseModel):
+    name: str
+    address: str
+    city: str
+    postal_code: str
+    lat: float
+    lng: float
+    service_types: Optional[List[str]] = []
+    max_speed: Optional[str] = None
+
+
 # -------------------------
 # Routes
 # -------------------------
-
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return render(
@@ -97,7 +115,6 @@ async def signup(request: Request, plan: str = "", rental: int = 0):
 @router.post("/submit-signup")
 async def submit_signup(request: Request):
     form_data = await request.form()
-
     try:
         form = SignupForm(**form_data)
     except ValidationError:
@@ -149,20 +166,47 @@ async def plans_page(request: Request):
 
 
 @router.get("/support", response_class=HTMLResponse)
-async def support(request: Request):
-    return render(
-        request,
-        "support.html",
-        locations=served_locations,
-    )
+async def support(request: Request, db: Session = Depends(get_db)):
+    """Show all locations from DB on support page"""
+    locations = get_all_locations(db)
+    locations_data = [
+        {
+            "name": loc.name,
+            "address": loc.address,
+            "city": loc.city,
+            "postal_code": loc.postal_code,
+            "lat": loc.lat,
+            "lng": loc.lng,
+            "service_types": loc.service_types or [],
+            "max_speed": loc.max_speed or "—",
+        }
+        for loc in locations
+    ]
+    return render(request, "support.html", locations=locations_data)
 
 
 @router.get("/check-coverage", response_class=HTMLResponse)
-async def check_coverage(request: Request):
+def check_coverage(request: Request, db: Session = Depends(get_db)):
+    """Render check_coverage.html with locations from the database."""
+    locations = get_all_locations(db)
+    locations_data = [
+        {
+            "name": loc.name,
+            "address": loc.address,
+            "city": loc.city,
+            "postal_code": loc.postal_code,
+            "lat": loc.lat,
+            "lng": loc.lng,
+            "service_types": loc.service_types or [],
+            "max_speed": loc.max_speed or "—",
+        }
+        for loc in locations
+    ]
+
     return render(
         request,
         "check_coverage.html",
-        locations=served_locations,
+        locations=locations_data
     )
 
 
@@ -194,7 +238,6 @@ async def contact(request: Request):
 @router.post("/submit-contact")
 async def submit_contact(request: Request):
     form_data = await request.form()
-
     try:
         form = ContactForm(**form_data)
     except ValidationError:
@@ -215,7 +258,7 @@ async def submit_contact(request: Request):
         logger.exception("Failed to send contact message to Discord")
 
     return RedirectResponse(
-        url=request.url_for("contact").include_query_params(success=1),
+        url=str(request.url.include_query_params(success=1)),
         status_code=303,
     )
 
@@ -227,3 +270,16 @@ async def devices_page(request: Request):
         "compatible-devices.html",
         devices=wisp_devices,
     )
+
+
+# -------------------------
+# Admin-only Location endpoint
+# -------------------------
+@router.post("/locations/add")
+async def create_location(
+    loc: LocationCreate,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(verify_admin_api_key)   # secured via API key
+):
+    location = add_location(db, loc.dict())
+    return JSONResponse(content={"id": location.id, "name": location.name})
