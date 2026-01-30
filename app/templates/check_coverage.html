@@ -19,81 +19,193 @@
       <input
         id="coverageSearch"
         type="text"
-        placeholder="Enter city or state"
-        class="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-red-900"
+        placeholder="Enter building, city, or address"
+        class="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-red-900 transition"
       />
     </div>
 
-    <!-- Map Card -->
-    <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-hidden">
-      <div
-        id="coverageMap"
-        class="w-full h-[500px]"
-      ></div>
+    <!-- Map -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-hidden mb-12">
+      <div id="coverageMap" class="w-full h-[500px]"></div>
+    </div>
+
+    <!-- Coverage Table -->
+    <div class="relative overflow-x-auto bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+      <table class="w-full text-sm text-left text-gray-300">
+        <caption class="p-6 text-lg font-bold text-white">
+          Service Availability
+          <p class="mt-2 text-sm font-normal text-gray-400">
+            All currently known serviceable and expansion locations.
+          </p>
+        </caption>
+
+        <thead class="bg-zinc-800 border-t border-b border-zinc-700 text-gray-400">
+          <tr>
+            <th class="px-6 py-3">Location</th>
+            <th class="px-6 py-3">Service Types</th>
+            <th class="px-6 py-3">Max Speed</th>
+            <th class="px-6 py-3 text-right">Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="coverageTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-6">
+      <button
+        id="prevPage"
+        class="border border-red-600 text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 rounded-lg transition disabled:opacity-40"
+      >
+        Previous
+      </button>
+
+      <p class="text-gray-400 text-sm">
+        Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+      </p>
+
+      <button
+        id="nextPage"
+        class="border border-red-600 text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 rounded-lg transition disabled:opacity-40"
+      >
+        Next
+      </button>
     </div>
 
   </div>
-
-<!-- CTA if location not found -->
-<div class="max-w-screen-md mx-auto mt-8 text-center">
-  <p class="text-gray-400 text-lg mb-4">
-    Can't find your address? We're constantly adding new locations.
-  </p>
-  <p class="text-gray-400 text-lg mb-4">
-    Contact us - we might be able to service your area!
-  </p>
-  <a href="/contact"
-     class="inline-block bg-red-600 hover:bg-red-500 text-white font-semibold px-6 py-3 rounded-lg transition focus:ring-4 focus:ring-red-900">
-    Contact Us
-  </a>
-</div>
-
 </section>
 
 <!-- Leaflet -->
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-  // Locations injected from FastAPI
   const locations = {{ locations | tojson }};
+  let markers = [];
 
-  // Initialize map (US-centered)
-  const map = L.map("coverageMap").setView([55.0902, -100.7129], 4);
+  /* ================= MAP ================= */
+  const map = L.map("coverageMap");
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
-  const markers = [];
+  function renderMarkers(locationsToShow) {
+    // Clear existing markers
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
 
-  locations.forEach(loc => {
-    const marker = L.marker([loc.lat, loc.lng])
-      .addTo(map)
-      .bindPopup(
-        `<strong>${loc.name}</strong><br>
-         <span style="color:#22c55e;">Service Available</span>`
-      );
+    const latLngs = [];
 
-    markers.push({ ...loc, marker });
-  });
+    locationsToShow.forEach(loc => {
+      if (!loc.lat || !loc.lng) return;
+      const marker = L.marker([loc.lat, loc.lng]).addTo(map);
+      marker.bindPopup(`<strong>${loc.name}</strong>`);
+      markers.push(marker);
+      latLngs.push([loc.lat, loc.lng]);
+    });
 
-  // Search behavior
-  document.getElementById("coverageSearch").addEventListener("input", (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    if (!query) return;
+    if (latLngs.length > 0) {
+      map.fitBounds(latLngs, { padding: [50, 50] });
+    } else {
+      map.setView([55.0902, -100.7129], 4);
+    }
+  }
 
-    const match = markers.find(m =>
-      m.name.toLowerCase().includes(query)
-    );
+  /* ================= TABLE + PAGINATION ================= */
+  const tableBody = document.getElementById("coverageTableBody");
+  const prevBtn = document.getElementById("prevPage");
+  const nextBtn = document.getElementById("nextPage");
+  const currentPageEl = document.getElementById("currentPage");
+  const totalPagesEl = document.getElementById("totalPages");
 
-    if (match) {
-      map.setView([match.lat, match.lng], 10);
-      match.marker.openPopup();
+  const rowsPerPage = 5;
+  let currentPage = 1;
+  let filteredLocations = [...locations];
+
+  function renderTable() {
+    tableBody.innerHTML = "";
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const pageItems = filteredLocations.slice(start, end);
+
+    let html = "";
+
+    if (pageItems.length === 0) {
+      html = `
+        <tr>
+          <td colspan="4" class="px-6 py-4 text-center text-gray-400">
+            No results found.
+          </td>
+        </tr>
+      `;
+    } else {
+      pageItems.forEach(loc => {
+        const available = loc.service_types && loc.service_types.length > 0;
+        html += `
+          <tr class="border-b border-zinc-800 hover:bg-zinc-800/50 transition">
+            <td class="px-6 py-4 font-semibold text-white">${loc.name}</td>
+            <td class="px-6 py-4">${available ? loc.service_types.join(", ") : "Not Available"}</td>
+            <td class="px-6 py-4">${available ? loc.max_speed : "—"}</td>
+            <td class="px-6 py-4 text-right">
+              ${
+                available
+                  ? `<a href="/signup?location=${encodeURIComponent(loc.name)}"
+                       class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg transition">
+                       Sign Up
+                     </a>`
+                  : `<a href="/contact"
+                       class="text-red-500 hover:text-red-400 font-medium">
+                       Contact Us
+                     </a>`
+              }
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    tableBody.innerHTML = html;
+
+    const totalPages = Math.ceil(filteredLocations.length / rowsPerPage) || 1;
+    currentPageEl.textContent = currentPage;
+    totalPagesEl.textContent = totalPages;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+
+    renderMarkers(filteredLocations);
+  }
+
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
     }
   });
+
+  nextBtn.addEventListener("click", () => {
+    const totalPages = Math.ceil(filteredLocations.length / rowsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable();
+    }
+  });
+
+  /* ================= SEARCH ================= */
+  document.getElementById("coverageSearch").addEventListener("input", e => {
+    const query = e.target.value.toLowerCase().trim();
+
+    filteredLocations = locations.filter(loc =>
+      loc.name.toLowerCase().includes(query) ||
+      (loc.address && loc.address.toLowerCase().includes(query)) ||
+      (loc.city && loc.city.toLowerCase().includes(query))
+    );
+
+    currentPage = 1;
+    renderTable();
+  });
+
+  renderTable();
 </script>
 {% endblock %}
