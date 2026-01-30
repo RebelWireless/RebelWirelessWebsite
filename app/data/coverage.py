@@ -1,9 +1,11 @@
 # app/data/coverage.py
 
 served_locations = [
-    {"name": "Los Angeles, CA", "lat": 34.0522, "lng": -118.2437},
-    {"name": "San Diego, CA", "lat": 32.7157, "lng": -117.1611},
-    {"name": "Las Vegas, NV", "lat": 36.1699, "lng": -115.1398},
-    {"name": "Las Vegas, NV", "lat": 36.1688, "lng": -115.1398},
-    {"name": "Phoenix, AZ", "lat": 33.4484, "lng": -112.0740},
+    {"name": "Vantage Pointe (1053 10 St SW, Calgary, AB T2R 1S6)", "lat": 51.04362794655885, "lng": -114.0866834932625},
+    {"name": "The Carrington (1017 11 Ave SW, Calgary, AB T2R 0G1)", "lat": 51.04288828800709, "lng": -114.0855283070645},
+    {"name": "The Arch (1115 9 St SW, Calgary, AB T2R 1C4)", "lat": 51.04233311680587, "lng": -114.08420211154552},
+    {"name": "Aura Tower (1112 9 St SW, Calgary, AB T2R 0Y5)", "lat": 51.04214519337893, "lng": -114.08358548258101},
+    {"name": "Stella Condominiums (1110 11 St SW, Calgary, AB T2R 1S5)", "lat": 51.04243711958165, "lng": -114.0886222301996},
+    {"name": "Cube (1177 11 Ave SW, Calgary, AB T2R 1K9)", "lat": 51.042819240606015, "lng": -114.08844428539125},
+    {"name": "The Davenport (1011 12 Ave SW, Calgary, AB T2R 0J5)", "lat": 51.04187703702705, "lng": -114.08498292538731},
 ]
