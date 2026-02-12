@@ -20,6 +20,26 @@
 </head>
 
 {#<body class="bg-black text-white antialiased">#}
+
+<!--  -->Metrics
+    <script src="https://swetrix.org/swetrix.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    swetrix.init('jFp3XUHH8ikN', {
+      apiURL: 'https://swetrixapi.rebelwireless.ca/log',
+    })
+    swetrix.trackViews()
+  })
+</script>
+
+<noscript>
+  <img
+    src="https://swetrixapi.rebelwireless.ca/log/noscript?pid=jFp3XUHH8ikN"
+    alt=""
+    referrerpolicy="no-referrer-when-downgrade"
+  />
+</noscript>
+    
 <body class="min-h-screen flex flex-col bg-black text-white antialiased">
     {% include "partials/navbar.html" %}
 
@@ -35,3 +55,4 @@
     {% block scripts %}{% endblock %}
 </body>
 </html>
+
