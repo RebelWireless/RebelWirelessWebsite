@@ -24,12 +24,14 @@
     <!-- Swetrix Analytics -->
     <script src="https://swetrix.org/swetrix.js" defer></script>
     <script>
-      swetrix.init('Bh7mezWDfqBI', {
-        apiURL: 'https://api.metrics.panel.ovcraft.com/log',
-      });
-      swetrix.trackViews();
+      document.addEventListener('DOMContentLoaded', function() {
+        swetrix.init('Bh7mezWDfqBI', {
+          apiURL: 'https://api.metrics.panel.ovcraft.com/log',
+        })
+        swetrix.trackViews()
+      })
     </script>
-
+    
     <noscript>
       <img
         src="https://api.metrics.panel.ovcraft.com/log/noscript?pid=Bh7mezWDfqBI"
@@ -52,3 +54,4 @@
     {% block scripts %}{% endblock %}
 </body>
 </html>
+
