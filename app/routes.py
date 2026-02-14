@@ -175,6 +175,9 @@ async def faq(request: Request):
 async def apps(request: Request):
     return render(request, "apps.html")
 
+@router.get("/downloads", response_class=HTMLResponse)
+async def apps(request: Request):
+    return render(request, "downloads.html")
 
 @router.get("/privacy", response_class=HTMLResponse)
 async def privacy_policy(request: Request):

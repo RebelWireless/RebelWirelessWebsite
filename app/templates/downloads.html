@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}External Website{% endblock %}
+
+{% block content %}
+<div class="w-full h-screen">
+    <iframe 
+        src="https://cohogs.com/boards/Rebel"
+        class="w-full h-full border-0"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        allowfullscreen
+    ></iframe>
+</div>
+{% endblock %}
