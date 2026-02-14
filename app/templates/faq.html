@@ -1,131 +1,355 @@
+{#{% extends "base.html" %}#}
+{##}
+{#{% block title %}FAQ — Rebel Wireless{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="max-w-5xl mx-auto px-4 py-12 font-primary text-white">#}
+{##}
+{#  <!-- Page Header -->#}
+{#  <div class="mb-12 text-center">#}
+{#    <h1 class="text-4xl font-bold tracking-tight text-matteBlack dark:text-white">#}
+{#      Frequently Asked Questions#}
+{#    </h1>#}
+{#    <p class="mt-3 text-steelGray text-lg">#}
+{#      Learn how to connect to Rebel Wireless using BYOD or Ubiquiti radios.#}
+{#    </p>#}
+{#  </div>#}
+{##}
+{#  <!-- FAQ Container -->#}
+{#  <div class="space-y-8">#}
+{##}
+{#    <!-- General Section -->#}
+{#    <section>#}
+{#      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">#}
+{#        General#}
+{#      </h2>#}
+{##}
+{#      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">#}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex cursor-pointer justify-between items-center font-semibold text-white">#}
+{#            What is a WISP?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            A Wireless Internet Service Provider (WISP) delivers internet access over#}
+{#            radio links instead of fiber or cable. Small antennas connect wirelessly to our network.#}
+{#          </p>#}
+{#        </details>#}
+{##}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex cursor-pointer justify-between items-center font-semibold text-white">#}
+{#            Why choose a WISP?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            WISPs offer flexibility in areas without wired infrastructure, faster setup, and community-focused connectivity.#}
+{#          </p>#}
+{#        </details>#}
+{#      </div>#}
+{#    </section>#}
+{##}
+{#    <!-- Equipment & Installation -->#}
+{#    <section>#}
+{#      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">#}
+{#        Equipment & Installation#}
+{#      </h2>#}
+{##}
+{#      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">#}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">#}
+{#            Can I use my own equipment (BYOD)?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            Yes. BYOD devices are supported if compatible with our frequencies and network setup.#}
+{#          </p>#}
+{#        </details>#}
+{##}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">#}
+{#            What equipment do you provide?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            We provide Ubiquiti radios such as LiteBeam, NanoBeam, or airMAX devices depending on your location.#}
+{#          </p>#}
+{#        </details>#}
+{##}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">#}
+{#            Can I install it myself?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            Many customers self-install. Installation involves mounting the radio, aiming it, and running Ethernet indoors.#}
+{#          </p>#}
+{#        </details>#}
+{#      </div>#}
+{#    </section>#}
+{##}
+{#    <!-- Community Networks -->#}
+{#    <section>#}
+{#      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">#}
+{#        Community Networks (NYC Mesh)#}
+{#      </h2>#}
+{##}
+{#      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">#}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">#}
+{#            What is NYC Mesh?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            NYC Mesh is a community-run wireless network connecting neighborhoods using rooftop radios. It's a good example of decentralized networking.#}
+{#          </p>#}
+{#        </details>#}
+{##}
+{#        <details class="group p-5 bg-black">#}
+{#          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">#}
+{#            How is this different from a WISP?#}
+{#            <span class="transition group-open:rotate-180 text-electricRed">▼</span>#}
+{#          </summary>#}
+{#          <p class="mt-4 text-steelGray">#}
+{#            A WISP provides dedicated service and formal support, while mesh networks rely on shared community resources.#}
+{#          </p>#}
+{#        </details>#}
+{#      </div>#}
+{#    </section>#}
+{##}
+{#    <!-- CTA Section -->#}
+{#    <div class="mt-12 rounded-lg bg-matteBlack border border-electricRed p-6 text-center">#}
+{#      <h3 class="text-xl font-bold text-white">Still have questions?</h3>#}
+{#      <p class="mt-2 text-steelGray">Contact us to determine the best setup for your location.</p>#}
+{#      <a href="/contact"#}
+{#         class="inline-block mt-4 px-6 py-2 rounded font-semibold bg-electricRed hover:bg-red-700 transition">#}
+{#        Contact Support#}
+{#      </a>#}
+{#    </div>#}
+{##}
+{#  </div>#}
+{#</div>#}
+{#{% endblock %}#}
+
 {% extends "base.html" %}
 
-{% block title %}FAQ — Rebel Wireless{% endblock %}
-
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-12 font-primary text-white">
+<section class="bg-black py-24 px-4">
+  <div class="max-w-4xl mx-auto">
 
-  <!-- Page Header -->
-  <div class="mb-12 text-center">
-    <h1 class="text-4xl font-bold tracking-tight text-matteBlack dark:text-white">
-      Frequently Asked Questions
-    </h1>
-    <p class="mt-3 text-steelGray text-lg">
-      Learn how to connect to Rebel Wireless using BYOD or Ubiquiti radios.
-    </p>
-  </div>
+    <!-- Section Header -->
+    <div class="text-center mb-16">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">
+        Frequently Asked Questions
+      </h1>
+      <p class="text-gray-400 text-lg font-normal max-w-2xl mx-auto">
+        Fast, reliable wireless internet. Here’s everything you need to know about Rebel Wireless service, installation, and support.
+      </p>
+    </div>
 
-  <!-- FAQ Container -->
-  <div class="space-y-8">
+    <!-- Accordion -->
+    <div class="space-y-4" x-data="{ open: null }">
 
-    <!-- General Section -->
-    <section>
-      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">
-        General
-      </h2>
-
-      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">
-        <details class="group p-5 bg-black">
-          <summary class="flex cursor-pointer justify-between items-center font-semibold text-white">
-            What is a WISP?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            A Wireless Internet Service Provider (WISP) delivers internet access over
-            radio links instead of fiber or cable. Small antennas connect wirelessly to our network.
-          </p>
-        </details>
-
-        <details class="group p-5 bg-black">
-          <summary class="flex cursor-pointer justify-between items-center font-semibold text-white">
-            Why choose a WISP?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            WISPs offer flexibility in areas without wired infrastructure, faster setup, and community-focused connectivity.
-          </p>
-        </details>
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 1 ? open = null : open = 1"
+                class="w-full flex justify-between items-center text-left p-6 focus:outline-none">
+          <span class="text-white font-semibold">
+            What is Rebel Wireless?
+          </span>
+          <svg :class="open === 1 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 1" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Rebel Wireless is a local Wireless Internet Service Provider (WISP). We deliver high-speed internet using licensed and unlicensed 5GHz Ubiquiti equipment instead of cable or fiber lines.
+        </div>
       </div>
-    </section>
 
-    <!-- Equipment & Installation -->
-    <section>
-      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">
-        Equipment & Installation
-      </h2>
-
-      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">
-        <details class="group p-5 bg-black">
-          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
-            Can I use my own equipment (BYOD)?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            Yes. BYOD devices are supported if compatible with our frequencies and network setup.
-          </p>
-        </details>
-
-        <details class="group p-5 bg-black">
-          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
-            What equipment do you provide?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            We provide Ubiquiti radios such as LiteBeam, NanoBeam, or airMAX devices depending on your location.
-          </p>
-        </details>
-
-        <details class="group p-5 bg-black">
-          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
-            Can I install it myself?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            Many customers self-install. Installation involves mounting the radio, aiming it, and running Ethernet indoors.
-          </p>
-        </details>
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 2 ? open = null : open = 2"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            How does wireless internet work?
+          </span>
+          <svg :class="open === 2 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 2" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          We install a small outdoor antenna on your home that connects to our nearest tower using secure 5GHz radio frequencies. That antenna connects to a router inside your home, providing WiFi just like cable internet.
+        </div>
       </div>
-    </section>
 
-    <!-- Community Networks -->
-    <section>
-      <h2 class="text-2xl font-semibold text-matteBlack mb-6 border-b-2 border-electricRed pb-2">
-        Community Networks (NYC Mesh)
-      </h2>
-
-      <div class="divide-y divide-steelGray rounded-lg border border-steelGray">
-        <details class="group p-5 bg-black">
-          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
-            What is NYC Mesh?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            NYC Mesh is a community-run wireless network connecting neighborhoods using rooftop radios. It's a good example of decentralized networking.
-          </p>
-        </details>
-
-        <details class="group p-5 bg-black">
-          <summary class="flex justify-between items-center font-semibold text-white cursor-pointer">
-            How is this different from a WISP?
-            <span class="transition group-open:rotate-180 text-electricRed">▼</span>
-          </summary>
-          <p class="mt-4 text-steelGray">
-            A WISP provides dedicated service and formal support, while mesh networks rely on shared community resources.
-          </p>
-        </details>
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 3 ? open = null : open = 3"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            What equipment do you use?
+          </span>
+          <svg :class="open === 3 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 3" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          We use professional-grade Ubiquiti 5GHz wireless radios and antennas designed specifically for WISP deployments. This equipment is reliable, secure, and optimized for long-distance connections.
+        </div>
       </div>
-    </section>
 
-    <!-- CTA Section -->
-    <div class="mt-12 rounded-lg bg-matteBlack border border-electricRed p-6 text-center">
-      <h3 class="text-xl font-bold text-white">Still have questions?</h3>
-      <p class="mt-2 text-steelGray">Contact us to determine the best setup for your location.</p>
-      <a href="/contact"
-         class="inline-block mt-4 px-6 py-2 rounded font-semibold bg-electricRed hover:bg-red-700 transition">
-        Contact Support
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 4 ? open = null : open = 4"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            Do I need a clear line of sight?
+          </span>
+          <svg :class="open === 4 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 4" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Yes. A clear or mostly clear line of sight to our tower ensures the best performance. Trees, hills, and buildings can affect signal strength. We perform a site survey before installation to confirm availability.
+        </div>
+      </div>
+
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 5 ? open = null : open = 5"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            How fast is the service?
+          </span>
+          <svg :class="open === 5 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 5" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Speeds depend on your selected plan and signal strength. Our 5GHz network supports streaming, gaming, video calls, and remote work. We will recommend the best plan based on your usage.
+        </div>
+      </div>
+
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 6 ? open = null : open = 6"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            Is there a data cap?
+          </span>
+          <svg :class="open === 6 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 6" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Most plans are unlimited with no hard data caps. We may apply fair-use policies to protect network performance for all customers.
+        </div>
+      </div>
+
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 7 ? open = null : open = 7"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            What is the installation process?
+          </span>
+          <svg :class="open === 7 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 7" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Our technician mounts a small antenna on your roof or exterior wall, runs a cable into your home, and connects it to a router. Installation typically takes 1–2 hours.
+        </div>
+      </div>
+
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 8 ? open = null : open = 8"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            Does weather affect the service?
+          </span>
+          <svg :class="open === 8 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 8" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Extreme weather can temporarily impact wireless signals, but our 5GHz equipment is designed for outdoor use and stable performance year-round.
+        </div>
+      </div>
+
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 9 ? open = null : open = 9"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            Is this good for gaming and streaming?
+          </span>
+          <svg :class="open === 9 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 9" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          Yes. Our low-latency wireless network supports HD/4K streaming and online gaming. Performance depends on signal quality and your selected speed plan.
+        </div>
+      </div>
+
+      <!-- Item -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow">
+        <button @click="open === 10 ? open = null : open = 10"
+                class="w-full flex justify-between items-center text-left p-6">
+          <span class="text-white font-semibold">
+            Is there a contract?
+          </span>
+          <svg :class="open === 10 ? 'rotate-180 text-red-600' : 'text-gray-400'"
+               class="w-5 h-5 transition-transform duration-200"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div x-show="open === 10" x-collapse class="px-6 pb-6 text-gray-300 font-normal">
+          We offer flexible service options. Contact us for current contract and month-to-month availability details.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-16">
+      <a href="{{ url_for('contact') }}"
+         class="bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-6 py-3 focus:ring-4 focus:ring-red-900 transition">
+        Check Availability
       </a>
     </div>
 
   </div>
-</div>
+</section>
 {% endblock %}
+
