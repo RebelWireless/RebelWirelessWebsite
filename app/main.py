@@ -112,7 +112,8 @@ async def submit_signup(request: Request):
 
     try:
         form = SignupForm(**form_data)
-    except ValidationError:
+    except ValidationError as e:
+        logger.warning("Signup form validation failed: %s", e)
         raise HTTPException(status_code=400, detail="Invalid form submission")
 
     # Honeypot spam protection
@@ -212,7 +213,8 @@ async def submit_contact(request: Request):
 
     try:
         form = ContactForm(**form_data)
-    except ValidationError:
+    except ValidationError as e:
+        logger.warning("Contact form validation failed: %s", e)
         raise HTTPException(status_code=400, detail="Invalid form submission")
 
     if form.company:
