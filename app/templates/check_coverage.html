@@ -2,6 +2,35 @@
 
 {% block title %}Rebel Wireless - Check Coverage{% endblock %}
 
+{% block head %}
+<style>
+  .hex-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 500;
+  }
+  .hex-tooltip {
+    position: absolute;
+    pointer-events: none;
+    z-index: 600;
+    background: rgba(24, 24, 27, 0.95);
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #e4e4e7;
+    max-width: 260px;
+    display: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="bg-black py-16 px-4 lg:py-24">
   <div class="max-w-screen-xl mx-auto">
@@ -19,15 +48,15 @@
     <!-- Legend -->
     <div class="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm">
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded-sm bg-red-600"></div>
+        <div class="w-4 h-4 rounded-sm" style="background:#2563eb"></div>
         <span class="text-gray-300">Active</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded-sm bg-amber-600"></div>
+        <div class="w-4 h-4 rounded-sm" style="background:#0ea5e9"></div>
         <span class="text-gray-300">Coming Soon</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded-sm bg-zinc-600"></div>
+        <div class="w-4 h-4 rounded-sm" style="background:#52525b"></div>
         <span class="text-gray-300">Planned</span>
       </div>
     </div>
@@ -38,23 +67,25 @@
         id="coverageSearch"
         type="text"
         placeholder="Search by building name or address..."
-        class="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-red-900 transition"
+        class="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-900 transition"
       />
     </div>
 
     <!-- Map -->
-    <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-hidden mb-12">
+    <div id="mapContainer" class="bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-hidden mb-12 relative">
       <div id="coverageMap" class="w-full h-[520px]"></div>
+      <canvas id="hexCanvas" class="hex-canvas"></canvas>
+      <div id="hexTooltip" class="hex-tooltip"></div>
     </div>
 
     <!-- Legend Stats -->
     <div class="grid grid-cols-3 gap-4 mb-8 text-center">
       <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-        <p class="text-2xl font-extrabold text-red-600" id="activeCount">0</p>
+        <p class="text-2xl font-extrabold text-blue-500" id="activeCount">0</p>
         <p class="text-gray-400 text-sm">Active Locations</p>
       </div>
       <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-        <p class="text-2xl font-extrabold text-amber-600" id="comingCount">0</p>
+        <p class="text-2xl font-extrabold text-sky-400" id="comingCount">0</p>
         <p class="text-gray-400 text-sm">Coming Soon</p>
       </div>
       <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
@@ -91,7 +122,7 @@
     <div class="flex items-center justify-between mt-6">
       <button
         id="prevPage"
-        class="border border-red-600 text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 rounded-lg transition disabled:opacity-40"
+        class="border border-blue-600 text-blue-500 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg transition disabled:opacity-40"
       >
         Previous
       </button>
@@ -102,7 +133,7 @@
 
       <button
         id="nextPage"
-        class="border border-red-600 text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 rounded-lg transition disabled:opacity-40"
+        class="border border-blue-600 text-blue-500 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg transition disabled:opacity-40"
       >
         Next
       </button>
@@ -117,136 +148,167 @@
 
 <script>
   const locations = {{ locations | tojson }};
-  let hexagons = [];
+  let hexLocs = [];
+  let hoveredIdx = -1;
 
-  /* ─── Hexagon Math ─── */
-  function hexCorners(cx, cy, size) {
-    const corners = [];
-    for (let i = 0; i < 6; i++) {
-      const angle = (60 * i - 30) * Math.PI / 180;
-      corners.push([cx + size * Math.cos(angle), cy + size * Math.sin(angle)]);
-    }
-    return corners;
+  /* ─── Status Config ─── */
+  const COLORS = {
+    active:      { fill: "rgba(37, 99, 235, 0.35)", stroke: "#2563eb", glow: "rgba(37, 99, 235, 0.6)" },
+    coming_soon: { fill: "rgba(14, 165, 233, 0.25)", stroke: "#0ea5e9", glow: "rgba(14, 165, 233, 0.5)" },
+    planned:     { fill: "rgba(82, 82, 91, 0.15)",  stroke: "#52525b", glow: "rgba(82, 82, 91, 0.3)" },
+  };
+
+  function statusLabel(s) {
+    switch (s) { case "active": return "Active"; case "coming_soon": return "Coming Soon"; case "planned": return "Planned"; default: return "Unknown"; }
   }
 
-  function buildHexagons(locations, radiusDeg) {
-    const result = [];
-    locations.forEach(loc => {
-      if (!loc.lat || !loc.lng) return;
-      const corners = hexCorners(loc.lat, loc.lng, radiusDeg);
-      result.push({
-        loc: loc,
-        polygon: corners
-      });
-    });
-    return result;
-  }
+  /* ─── Map + Canvas Setup ─── */
+  const map = L.map("coverageMap", { zoomControl: false });
 
-  /* ─── Status Colors ─── */
-  function statusColor(status) {
-    switch (status) {
-      case "active":      return "#dc2626"; // red-600
-      case "coming_soon": return "#d97706"; // amber-600
-      case "planned":     return "#52525b"; // zinc-600
-      default:            return "#52525b";
-    }
-  }
-
-  function statusFillOpacity(status) {
-    switch (status) {
-      case "active":      return 0.4;
-      case "coming_soon": return 0.25;
-      case "planned":     return 0.15;
-      default:            return 0.15;
-    }
-  }
-
-  function statusLabel(status) {
-    switch (status) {
-      case "active":      return "Active";
-      case "coming_soon": return "Coming Soon";
-      case "planned":     return "Planned";
-      default:            return "Unknown";
-    }
-  }
-
-  /* ─── Map Setup ─── */
-  const map = L.map("coverageMap", {
-    zoomControl: false,
-  });
-
-  // Dark tiles (CartoDB Dark Matter)
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 20,
+    subdomains: "abcd", maxZoom: 20,
   }).addTo(map);
 
-  // Zoom controls on the right
   L.control.zoom({ position: "bottomright" }).addTo(map);
 
-  /* ─── Render Hexagons ─── */
-  function renderCoverage(locationsToShow) {
-    // Clear existing
-    hexagons.forEach(h => map.removeLayer(h));
-    hexagons = [];
+  const canvas = document.getElementById("hexCanvas");
+  const ctx = canvas.getContext("2d");
+  const tooltip = document.getElementById("hexTooltip");
+  const container = document.getElementById("mapContainer");
 
-    const allLatLngs = [];
+  const HEX_RADIUS = 22; // px — fixed pixel size like SpaceX
+  const HOVER_SCALE = 1.25;
 
-    // Build hexagons at ~120m radius (0.0011° at Calgary latitude)
-    const hexData = buildHexagons(locationsToShow, 0.0011);
-
-    hexData.forEach(h => {
-      const loc = h.loc;
-      const hex = L.polygon(h.polygon, {
-        color: statusColor(loc.status),
-        weight: 1.5,
-        opacity: 0.8,
-        fillColor: statusColor(loc.status),
-        fillOpacity: statusFillOpacity(loc.status),
-      }).addTo(map);
-
-      hex.bindTooltip(
-        `<strong>${loc.name}</strong><br/>` +
-        `${loc.address || ""}<br/>` +
-        `<span style="color:${statusColor(loc.status)}">● ${statusLabel(loc.status)}</span>` +
-        (loc.max_speed ? `<br/>Up to ${loc.max_speed}` : ""),
-        { direction: "top", offset: [0, -10] }
-      );
-
-      hex.on("mouseover", () => {
-        hex.setStyle({ fillOpacity: 0.7, weight: 2.5 });
-        hex.bringToFront();
-      });
-
-      hex.on("mouseout", () => {
-        hex.setStyle({
-          fillOpacity: statusFillOpacity(loc.status),
-          weight: 1.5,
-        });
-      });
-
-      hexagons.push(hex);
-      allLatLngs.push([loc.lat, loc.lng]);
-    });
-
-    // Fit map to show all hexagons
-    if (allLatLngs.length > 0) {
-      const bounds = L.latLngBounds(allLatLngs).pad(0.3);
-      map.fitBounds(bounds);
-    } else {
-      map.setView([51.044, -114.07], 13);
-    }
+  function resizeCanvas() {
+    const rect = document.getElementById("coverageMap").getBoundingClientRect();
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+    ctx.scale(devicePixelRatio, devicePixelRatio);
   }
+
+  /* ─── Hexagon Drawing ─── */
+  function hexPath(cx, cy, r) {
+    const pts = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (60 * i - 30) * Math.PI / 180;
+      pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+    }
+    return pts;
+  }
+
+  function drawHex(cx, cy, r, colors, isHovered) {
+    const pts = hexPath(cx, cy, r);
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < 6; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+
+    ctx.fillStyle = isHovered ? colors.glow : colors.fill;
+    ctx.fill();
+
+    ctx.strokeStyle = isHovered ? colors.stroke : colors.stroke;
+    ctx.lineWidth = isHovered ? 2.5 : 1.5;
+    ctx.stroke();
+  }
+
+  /* ─── Point-in-hexagon test ─── */
+  function pointInHex(px, py, cx, cy, r) {
+    const pts = hexPath(cx, cy, r);
+    let inside = true;
+    for (let i = 0; i < 6; i++) {
+      const j = (i + 1) % 6;
+      const ex = pts[j].x - pts[i].x;
+      const ey = pts[j].y - pts[i].y;
+      const wx = px - pts[i].x;
+      const wy = py - pts[i].y;
+      if (ex * wy - ey * wx < 0) { inside = false; break; }
+    }
+    return inside;
+  }
+
+  /* ─── Render all hexagons on canvas ─── */
+  function renderCanvas() {
+    resizeCanvas();
+
+    const w = parseFloat(canvas.style.width);
+    const h = parseFloat(canvas.style.height);
+    ctx.clearRect(0, 0, w, h);
+
+    hexLocs = [];
+
+    const locs = filteredLocations;
+    locs.forEach((loc, idx) => {
+      if (!loc.lat || !loc.lng) return;
+      const pt = map.latLngToContainerPoint([loc.lat, loc.lng]);
+      const cx = pt.x, cy = pt.y;
+      const colors = COLORS[loc.status] || COLORS.planned;
+      const r = HEX_RADIUS * (hoveredIdx === idx ? HOVER_SCALE : 1);
+      drawHex(cx, cy, r, colors, hoveredIdx === idx);
+      hexLocs.push({ idx, cx, cy, r, loc });
+    });
+  }
+
+  /* ─── Mouse tracking ─── */
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  canvas.addEventListener("mousemove", (e) => {
+    const pos = getMousePos(e);
+    let found = -1;
+
+    for (let i = hexLocs.length - 1; i >= 0; i--) {
+      const h = hexLocs[i];
+      const r = HEX_RADIUS * (hoveredIdx === h.idx ? HOVER_SCALE : 1);
+      if (pointInHex(pos.x, pos.y, h.cx, h.cy, r)) {
+        found = h.idx;
+        break;
+      }
+    }
+
+    if (found !== hoveredIdx) {
+      hoveredIdx = found;
+      renderCanvas();
+    }
+
+    if (found >= 0) {
+      const loc = filteredLocations[found];
+      const colors = COLORS[loc.status] || COLORS.planned;
+      tooltip.style.display = "block";
+      tooltip.style.left = (pos.x + 15) + "px";
+      tooltip.style.top = (pos.y - 10) + "px";
+      tooltip.innerHTML =
+        `<div style="font-weight:600;color:white">${loc.name}</div>` +
+        (loc.address ? `<div style="color:#a1a1aa;font-size:12px">${loc.address}</div>` : "") +
+        `<div style="margin-top:4px"><span style="color:${colors.stroke}">●</span> ${statusLabel(loc.status)}` +
+        (loc.max_speed ? ` &mdash; Up to ${loc.max_speed}` : "") + "</div>";
+      canvas.style.cursor = "pointer";
+    } else {
+      tooltip.style.display = "none";
+      canvas.style.cursor = "";
+    }
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    hoveredIdx = -1;
+    tooltip.style.display = "none";
+    canvas.style.cursor = "";
+    renderCanvas();
+  });
+
+  /* ─── Redraw on map move/zoom ─── */
+  map.on("moveend", () => { hoveredIdx = -1; tooltip.style.display = "none"; renderCanvas(); });
+  map.on("zoomstart", () => { tooltip.style.display = "none"; });
 
   /* ─── Stats ─── */
   function updateStats(locs) {
-    const active = locs.filter(l => l.status === "active").length;
-    const coming = locs.filter(l => l.status === "coming_soon").length;
-    const planned = locs.filter(l => l.status === "planned").length;
-    document.getElementById("activeCount").textContent = active;
-    document.getElementById("comingCount").textContent = coming;
-    document.getElementById("plannedCount").textContent = planned;
+    document.getElementById("activeCount").textContent  = locs.filter(l => l.status === "active").length;
+    document.getElementById("comingCount").textContent  = locs.filter(l => l.status === "coming_soon").length;
+    document.getElementById("plannedCount").textContent = locs.filter(l => l.status === "planned").length;
   }
 
   /* ─── Table + Pagination ─── */
@@ -261,24 +323,17 @@
   let filteredLocations = [...locations];
 
   function renderTable() {
-    tableBody.innerHTML = "";
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     const pageItems = filteredLocations.slice(start, end);
 
     let html = "";
-
     if (pageItems.length === 0) {
-      html = `
-        <tr>
-          <td colspan="5" class="px-6 py-4 text-center text-gray-400">
-            No results found.
-          </td>
-        </tr>
-      `;
+      html = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-400">No results found.</td></tr>`;
     } else {
       pageItems.forEach(loc => {
-        const available = loc.status === "active";
+        const avail = loc.status === "active";
+        const c = COLORS[loc.status] || COLORS.planned;
         html += `
           <tr class="border-b border-zinc-800 hover:bg-zinc-800/50 transition">
             <td class="px-6 py-4">
@@ -286,29 +341,20 @@
               <div class="text-gray-500 text-xs">${loc.address || ""}</div>
             </td>
             <td class="px-6 py-4">
-              <span style="color:${statusColor(loc.status)}">●</span>
+              <span style="color:${c.stroke}">●</span>
               <span class="text-gray-300">${statusLabel(loc.status)}</span>
             </td>
-            <td class="px-6 py-4">${available ? loc.service_types.join(", ") : "—"}</td>
-            <td class="px-6 py-4">${available ? loc.max_speed : "—"}</td>
+            <td class="px-6 py-4">${avail ? loc.service_types.join(", ") : "—"}</td>
+            <td class="px-6 py-4">${avail ? loc.max_speed : "—"}</td>
             <td class="px-6 py-4 text-right">
-              ${
-                available
-                  ? `<a href="/signup?location=${encodeURIComponent(loc.name)}"
-                       class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg transition">
-                       Sign Up
-                     </a>`
-                  : `<a href="/contact"
-                       class="text-red-500 hover:text-red-400 font-medium">
-                       Contact Us
-                     </a>`
-              }
+              ${avail
+                ? `<a href="/signup?location=${encodeURIComponent(loc.name)}"
+                     class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg transition">Sign Up</a>`
+                : `<a href="/contact" class="text-blue-500 hover:text-blue-400 font-medium">Contact Us</a>`}
             </td>
-          </tr>
-        `;
+          </tr>`;
       });
     }
-
     tableBody.innerHTML = html;
 
     const totalPages = Math.ceil(filteredLocations.length / rowsPerPage) || 1;
@@ -317,39 +363,44 @@
     prevBtn.disabled = currentPage === 1;
     nextBtn.disabled = currentPage === totalPages;
 
-    renderCoverage(filteredLocations);
+    // Re-render hexagons
+    hoveredIdx = -1;
+    tooltip.style.display = "none";
+    renderCanvas();
     updateStats(filteredLocations);
   }
 
-  prevBtn.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderTable();
-    }
-  });
-
+  prevBtn.addEventListener("click", () => { if (currentPage > 1) { currentPage--; renderTable(); } });
   nextBtn.addEventListener("click", () => {
     const totalPages = Math.ceil(filteredLocations.length / rowsPerPage);
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderTable();
-    }
+    if (currentPage < totalPages) { currentPage++; renderTable(); }
   });
 
   /* ─── Search ─── */
   document.getElementById("coverageSearch").addEventListener("input", e => {
-    const query = e.target.value.toLowerCase().trim();
-
+    const q = e.target.value.toLowerCase().trim();
     filteredLocations = locations.filter(loc =>
-      loc.name.toLowerCase().includes(query) ||
-      (loc.address && loc.address.toLowerCase().includes(query)) ||
-      (loc.city && loc.city.toLowerCase().includes(query))
+      loc.name.toLowerCase().includes(q) ||
+      (loc.address && loc.address.toLowerCase().includes(q)) ||
+      (loc.city && loc.city.toLowerCase().includes(q))
     );
-
     currentPage = 1;
     renderTable();
   });
 
-  renderTable();
+  /* ─── Init ─── */
+  function initMap() {
+    // Fit bounds to all locations
+    const validLocs = locations.filter(l => l.lat && l.lng);
+    if (validLocs.length > 0) {
+      const bounds = L.latLngBounds(validLocs.map(l => [l.lat, l.lng])).pad(0.3);
+      map.fitBounds(bounds);
+    } else {
+      map.setView([51.044, -114.07], 13);
+    }
+    renderTable();
+  }
+
+  initMap();
 </script>
 {% endblock %}
