@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Rebel Wireless - Check Coverage{% endblock %}
+
 {% block content %}
 <section class="bg-black py-16 px-4 lg:py-24">
   <div class="max-w-screen-xl mx-auto">
@@ -10,8 +12,24 @@
         Check Coverage
       </h1>
       <p class="text-gray-400 text-lg">
-        See where Rebel Wireless service is currently available.
+        See where Rebel Wireless service is available in Calgary.
       </p>
+    </div>
+
+    <!-- Legend -->
+    <div class="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm">
+      <div class="flex items-center gap-2">
+        <div class="w-4 h-4 rounded-sm bg-red-600"></div>
+        <span class="text-gray-300">Active</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-4 h-4 rounded-sm bg-amber-600"></div>
+        <span class="text-gray-300">Coming Soon</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-4 h-4 rounded-sm bg-zinc-600"></div>
+        <span class="text-gray-300">Planned</span>
+      </div>
     </div>
 
     <!-- Search Box -->
@@ -19,14 +37,30 @@
       <input
         id="coverageSearch"
         type="text"
-        placeholder="Enter building, city, or address"
+        placeholder="Search by building name or address..."
         class="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-red-900 transition"
       />
     </div>
 
     <!-- Map -->
     <div class="bg-zinc-900 border border-zinc-800 rounded-lg shadow overflow-hidden mb-12">
-      <div id="coverageMap" class="w-full h-[500px]"></div>
+      <div id="coverageMap" class="w-full h-[520px]"></div>
+    </div>
+
+    <!-- Legend Stats -->
+    <div class="grid grid-cols-3 gap-4 mb-8 text-center">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+        <p class="text-2xl font-extrabold text-red-600" id="activeCount">0</p>
+        <p class="text-gray-400 text-sm">Active Locations</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+        <p class="text-2xl font-extrabold text-amber-600" id="comingCount">0</p>
+        <p class="text-gray-400 text-sm">Coming Soon</p>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+        <p class="text-2xl font-extrabold text-zinc-500" id="plannedCount">0</p>
+        <p class="text-gray-400 text-sm">Planned</p>
+      </div>
     </div>
 
     <!-- Coverage Table -->
@@ -42,6 +76,7 @@
         <thead class="bg-zinc-800 border-t border-b border-zinc-700 text-gray-400">
           <tr>
             <th class="px-6 py-3">Location</th>
+            <th class="px-6 py-3">Status</th>
             <th class="px-6 py-3">Service Types</th>
             <th class="px-6 py-3">Max Speed</th>
             <th class="px-6 py-3 text-right">Action</th>
@@ -76,44 +111,145 @@
   </div>
 </section>
 
-<!-- Leaflet -->
+<!-- Leaflet + Dark tiles -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
   const locations = {{ locations | tojson }};
-  let markers = [];
+  let hexagons = [];
 
-  /* ================= MAP ================= */
-  const map = L.map("coverageMap");
+  /* ─── Hexagon Math ─── */
+  function hexCorners(cx, cy, size) {
+    const corners = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (60 * i - 30) * Math.PI / 180;
+      corners.push([cx + size * Math.cos(angle), cy + size * Math.sin(angle)]);
+    }
+    return corners;
+  }
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
-
-  function renderMarkers(locationsToShow) {
-    // Clear existing markers
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
-
-    const latLngs = [];
-
-    locationsToShow.forEach(loc => {
+  function buildHexagons(locations, radiusDeg) {
+    const result = [];
+    locations.forEach(loc => {
       if (!loc.lat || !loc.lng) return;
-      const marker = L.marker([loc.lat, loc.lng]).addTo(map);
-      marker.bindPopup(`<strong>${loc.name}</strong>`);
-      markers.push(marker);
-      latLngs.push([loc.lat, loc.lng]);
+      const corners = hexCorners(loc.lat, loc.lng, radiusDeg);
+      result.push({
+        loc: loc,
+        polygon: corners
+      });
     });
+    return result;
+  }
 
-    if (latLngs.length > 0) {
-      map.fitBounds(latLngs, { padding: [50, 50] });
-    } else {
-      map.setView([55.0902, -100.7129], 4);
+  /* ─── Status Colors ─── */
+  function statusColor(status) {
+    switch (status) {
+      case "active":      return "#dc2626"; // red-600
+      case "coming_soon": return "#d97706"; // amber-600
+      case "planned":     return "#52525b"; // zinc-600
+      default:            return "#52525b";
     }
   }
 
-  /* ================= TABLE + PAGINATION ================= */
+  function statusFillOpacity(status) {
+    switch (status) {
+      case "active":      return 0.4;
+      case "coming_soon": return 0.25;
+      case "planned":     return 0.15;
+      default:            return 0.15;
+    }
+  }
+
+  function statusLabel(status) {
+    switch (status) {
+      case "active":      return "Active";
+      case "coming_soon": return "Coming Soon";
+      case "planned":     return "Planned";
+      default:            return "Unknown";
+    }
+  }
+
+  /* ─── Map Setup ─── */
+  const map = L.map("coverageMap", {
+    zoomControl: false,
+  });
+
+  // Dark tiles (CartoDB Dark Matter)
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 20,
+  }).addTo(map);
+
+  // Zoom controls on the right
+  L.control.zoom({ position: "bottomright" }).addTo(map);
+
+  /* ─── Render Hexagons ─── */
+  function renderCoverage(locationsToShow) {
+    // Clear existing
+    hexagons.forEach(h => map.removeLayer(h));
+    hexagons = [];
+
+    const allLatLngs = [];
+
+    // Build hexagons at ~120m radius (0.0011° at Calgary latitude)
+    const hexData = buildHexagons(locationsToShow, 0.0011);
+
+    hexData.forEach(h => {
+      const loc = h.loc;
+      const hex = L.polygon(h.polygon, {
+        color: statusColor(loc.status),
+        weight: 1.5,
+        opacity: 0.8,
+        fillColor: statusColor(loc.status),
+        fillOpacity: statusFillOpacity(loc.status),
+      }).addTo(map);
+
+      hex.bindTooltip(
+        `<strong>${loc.name}</strong><br/>` +
+        `${loc.address || ""}<br/>` +
+        `<span style="color:${statusColor(loc.status)}">● ${statusLabel(loc.status)}</span>` +
+        (loc.max_speed ? `<br/>Up to ${loc.max_speed}` : ""),
+        { direction: "top", offset: [0, -10] }
+      );
+
+      hex.on("mouseover", () => {
+        hex.setStyle({ fillOpacity: 0.7, weight: 2.5 });
+        hex.bringToFront();
+      });
+
+      hex.on("mouseout", () => {
+        hex.setStyle({
+          fillOpacity: statusFillOpacity(loc.status),
+          weight: 1.5,
+        });
+      });
+
+      hexagons.push(hex);
+      allLatLngs.push([loc.lat, loc.lng]);
+    });
+
+    // Fit map to show all hexagons
+    if (allLatLngs.length > 0) {
+      const bounds = L.latLngBounds(allLatLngs).pad(0.3);
+      map.fitBounds(bounds);
+    } else {
+      map.setView([51.044, -114.07], 13);
+    }
+  }
+
+  /* ─── Stats ─── */
+  function updateStats(locs) {
+    const active = locs.filter(l => l.status === "active").length;
+    const coming = locs.filter(l => l.status === "coming_soon").length;
+    const planned = locs.filter(l => l.status === "planned").length;
+    document.getElementById("activeCount").textContent = active;
+    document.getElementById("comingCount").textContent = coming;
+    document.getElementById("plannedCount").textContent = planned;
+  }
+
+  /* ─── Table + Pagination ─── */
   const tableBody = document.getElementById("coverageTableBody");
   const prevBtn = document.getElementById("prevPage");
   const nextBtn = document.getElementById("nextPage");
@@ -135,18 +271,25 @@
     if (pageItems.length === 0) {
       html = `
         <tr>
-          <td colspan="4" class="px-6 py-4 text-center text-gray-400">
+          <td colspan="5" class="px-6 py-4 text-center text-gray-400">
             No results found.
           </td>
         </tr>
       `;
     } else {
       pageItems.forEach(loc => {
-        const available = loc.service_types && loc.service_types.length > 0;
+        const available = loc.status === "active";
         html += `
           <tr class="border-b border-zinc-800 hover:bg-zinc-800/50 transition">
-            <td class="px-6 py-4 font-semibold text-white">${loc.name}</td>
-            <td class="px-6 py-4">${available ? loc.service_types.join(", ") : "Not Available"}</td>
+            <td class="px-6 py-4">
+              <div class="font-semibold text-white">${loc.name}</div>
+              <div class="text-gray-500 text-xs">${loc.address || ""}</div>
+            </td>
+            <td class="px-6 py-4">
+              <span style="color:${statusColor(loc.status)}">●</span>
+              <span class="text-gray-300">${statusLabel(loc.status)}</span>
+            </td>
+            <td class="px-6 py-4">${available ? loc.service_types.join(", ") : "—"}</td>
             <td class="px-6 py-4">${available ? loc.max_speed : "—"}</td>
             <td class="px-6 py-4 text-right">
               ${
@@ -174,7 +317,8 @@
     prevBtn.disabled = currentPage === 1;
     nextBtn.disabled = currentPage === totalPages;
 
-    renderMarkers(filteredLocations);
+    renderCoverage(filteredLocations);
+    updateStats(filteredLocations);
   }
 
   prevBtn.addEventListener("click", () => {
@@ -192,7 +336,7 @@
     }
   });
 
-  /* ================= SEARCH ================= */
+  /* ─── Search ─── */
   document.getElementById("coverageSearch").addEventListener("input", e => {
     const query = e.target.value.toLowerCase().trim();
 
